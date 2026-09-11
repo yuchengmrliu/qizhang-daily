@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>起漲日報 — 台股每日自動選股</title>
+<meta name="description" content="每個交易日收盤後自動掃描全台股,用基本面估值與技術面起漲訊號雙重篩選。">
+<meta name="theme-color" content="#f6f2e9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切換日夜版">夜</button>
+    <h1 class="masthead__title">起漲日報</h1>
+    <p class="masthead__tagline">基本面 × 技術面 每日自動選股</p>
+    <div class="rule-double"></div>
+    <div class="dateline" id="dateline">載入中……</div>
+  </header>
+
+  <main id="view" aria-live="polite"></main>
+
+  <footer class="footnote">
+    資料來源:臺灣證券交易所、證券櫃檯買賣中心公開資料,每個交易日收盤後自動更新。<br>
+    本站為個人研究用的統計工具,所有數字僅反映公開資料的機械計算結果,不構成任何投資建議。
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
