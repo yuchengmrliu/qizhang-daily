@@ -1,0 +1,70 @@
+name: 每日選股
+
+on:
+  schedule:
+    # UTC 08:00 = 台北 16:00,收盤後資料已公布
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: 安裝套件
+        run: pip install -r requirements.txt
+
+      - name: 執行測試
+        run: python -m pytest tests -q
+
+      - name: 取回歷史快取
+        run: |
+          if git fetch origin data:refs/remotes/origin/data --depth=1 2>/dev/null; then
+            git checkout refs/remotes/origin/data -- cache
+            echo "已取回快取:"
+            ls -la cache
+          else
+            echo "尚無 data 分支,將由本次執行建立"
+          fi
+
+      - name: 更新資料並產出網站
+        run: python -m pipeline.run_daily
+
+      - name: 保存歷史快取
+        run: |
+          git config user.name "qizhang-daily-bot"
+          git config user.email "actions@github.com"
+          git checkout --orphan data-snapshot
+          git rm -rf --cached . > /dev/null
+          git add -f cache
+          git commit -q -m "cache: $(date -u '+%Y-%m-%d')"
+          git push -f origin data-snapshot:data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
