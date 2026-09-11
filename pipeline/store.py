@@ -81,3 +81,37 @@ def add_valuations(rows: list[dict]) -> pd.DataFrame:
 
 def cached_dates(frame: pd.DataFrame) -> set[date]:
     return set() if frame.empty else set(frame["date"])
+
+
+def patch_valuation_close(rows: list[dict] | pd.DataFrame) -> int:
+    """把行情資料的收盤價補進估值快取中缺漏的欄位。
+
+    櫃買的估值報表不含收盤價,少了它就算不出每股盈餘,上櫃股的獲利趨勢
+    條件會永遠無法判定。收盤價本身在行情資料裡,補起來不需要額外請求。
+    回傳補上的筆數。
+    """
+    source = pd.DataFrame(rows) if isinstance(rows, list) else rows
+    if source.empty:
+        return 0
+
+    valuations = load_valuations()
+    if valuations.empty:
+        return 0
+
+    lookup = {
+        (row.date, row.code): row.close
+        for row in source[["date", "code", "close"]].itertuples()
+        if pd.notna(row.close)
+    }
+    missing = valuations["close"].isna()
+    if not missing.any():
+        return 0
+
+    filled = valuations.loc[missing].apply(
+        lambda row: lookup.get((row["date"], row["code"])), axis=1
+    )
+    patched = int(filled.notna().sum())
+    if patched:
+        valuations.loc[missing, "close"] = filled
+        save_valuations(valuations)
+    return patched

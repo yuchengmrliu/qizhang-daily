@@ -57,6 +57,10 @@ def main() -> int:
     print("更新最近交易日資料", flush=True)
     _refresh_recent()
 
+    patched = store.patch_valuation_close(store.load_quotes())
+    if patched:
+        print(f"  由行情補上 {patched:,} 筆估值收盤價", flush=True)
+
     quotes = store.load_quotes()
     valuations = store.load_valuations()
     if quotes.empty or valuations.empty:
